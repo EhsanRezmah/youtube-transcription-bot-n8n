@@ -41,4 +41,4 @@
 - Voice message support (Telegram voice → transcription)
 - Advanced cost monitoring and alerts
 
-## 📌 Built with passion during Ausbildung in Frankfurt
+## 📌 Built with passion during Ausbildung in CCNET - Gießen

@@ -1,0 +1,656 @@
+{
+  "name": "Youtube_Transcribe",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2112,
+        -1376
+      ],
+      "id": "7bc9f5cd-de49-4fc0-ba59-ef3190c8bf2f",
+      "name": "Youtube_Transcriptions",
+      "webhookId": "e6a964ab-59cb-4f51-958e-f74e779d797e",
+      "credentials": {
+        "telegramApi": {
+          "id": "2Oug73Uyx5HwSzCT",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "dB9f4B02ocpTICIEY",
+          "mode": "list",
+          "cachedResultName": "YouTube Transcript Ninja ⚡️🥷⚡ (topaz_sharingan/Youtube-Transcript-Scraper-1)",
+          "cachedResultUrl": "https://console.apify.com/actors/dB9f4B02ocpTICIEY/input"
+        },
+        "customBody": "={\n  \"startUrls\": [\n    { \"url\": \"{{ $('Youtube_Transcriptions').item.json.message.text }}\" }\n  ]\n}",
+        "timeout": {}
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -1472
+      ],
+      "id": "c0bb1c78-90a7-4d12-9906-5f26cfea8d8b",
+      "name": "Run an Actor and get dataset",
+      "credentials": {
+        "apifyApi": {
+          "id": "Mrs6E8ufcgCEPU6o",
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Youtube_Transcriptions').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        -1472
+      ],
+      "id": "55dc69aa-a06a-40b5-a2ed-aa298672cb6c",
+      "name": "Send a text message",
+      "webhookId": "e93bb1bf-49bb-4be7-9075-ac26f8f0b0b0",
+      "credentials": {
+        "telegramApi": {
+          "id": "2Oug73Uyx5HwSzCT",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Summarize the following transcript in its ORIGINAL language.\nIf the input is Persian, the output MUST be Persian.\nIf the input is English, the output MUST be English.\n\nTranscript:\n{{ $json.text }}",
+        "options": {
+          "systemMessage": "You are a professional Content Analyst and Technical Writer. Your task is to process a segment of a YouTube transcription into a high-fidelity, polished version.\n\nObjective: Provide a clean and highly accurate version of this specific text segment. Do NOT summarize. Your goal is to refine the text while retaining 90-95% of the original content.\n\nGuidelines:\n\nDirect Processing: Do NOT add any introductions like \"Overview:\" or \"Summary:\" at the beginning. Start directly with the processed text.\n\nContent Preservation: Retain ALL technical details, names, arguments, and specific data points.\n\nRefining: Remove filler words (um, uh, like), repetitive stutters, and \"like/subscribe\" calls-to-action.\n\nStructure: Use clear paragraphs. Use bullet points only if the original text contains a list or distinct steps.\n\nTone: Professional, objective, and informative.\n\nLanguage: Always output in the SAME language as the input (e.g., if input is Persian, output MUST be Persian)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        -1472
+      ],
+      "id": "ce0bf14c-6116-428b-bce2-133fb9a39c72",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        208,
+        -1248
+      ],
+      "id": "5eeaf2e0-72f7-4198-a18a-c145bedb59f0",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "VSATk6THdiy0LB3Q",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c44c57ea-5a5b-4c0f-bbb4-b47f466e4349",
+              "name": "Language",
+              "value": "={{ $json.callback_query.data.split('|')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "681c4941-859d-4d73-ad17-5201f08cf235",
+              "name": "youtube_url",
+              "value": "={{ $json.callback_query.data.split('|')[1] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        -1472
+      ],
+      "id": "eb85a965-30bc-49f8-889b-112256495b94",
+      "name": "Language"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = items[0].json.text; // گرفتن متن از ورودی\nconst chunkSize = 4000; // اندازه هر چانک (قابل تغییر)\nconst chunks = [];\n\nif (text.length <= chunkSize) {\n    // اگر متن کوتاه بود، همان را برگردان\n    return [{ json: { text: text } }];\n}\n\n// اگر متن طولانی بود، آن را تقسیم کن\nfor (let i = 0; i < text.length; i += chunkSize) {\n    chunks.push({\n        json: {\n            text: text.substring(i, i + chunkSize)\n        }\n    });\n}\n\nreturn chunks;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        -1472
+      ],
+      "id": "b9c2c5d2-cc6d-4ffb-8051-1f7e1278e45a",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "users_activity",
+          "mode": "list",
+          "cachedResultName": "users_activity"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "chat_id",
+              "value": "={{ $json.message.from.id }}"
+            },
+            {
+              "column": "username",
+              "value": "={{ $json.message.from.username }}"
+            },
+            {
+              "column": "message_text",
+              "value": "={{ $json.message.text }}"
+            },
+            {
+              "column": "status",
+              "value": "received"
+            },
+            {
+              "column": "first_name",
+              "value": "={{ $json.message.chat.first_name }}"
+            }
+          ]
+        },
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        -1664,
+        -1280
+      ],
+      "id": "b727dad0-96b8-4ed4-a01a-fc66df990d44",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "mySql": {
+          "id": "26wPj95B4KFAPlZp",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS total_requests \nFROM users_activity \nWHERE chat_id = '{{ $node[\"Youtube_Transcriptions\"].json[\"message\"][\"from\"][\"id\"] }}' \nAND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)\nAND status = 'processed';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        -992,
+        -1376
+      ],
+      "id": "b85d7d0f-51ae-4a94-9721-e3217eed82fd",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "mySql": {
+          "id": "26wPj95B4KFAPlZp",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Youtube_Transcriptions').item.json.message.chat.id }}",
+        "text": "کاربرعزیز، تو امروز ۳ بار از سهمیه‌ات استفاده کردی. فردا دوباره منتظرت هستم! 😊»",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -544,
+        -1280
+      ],
+      "id": "989212c7-3844-4a18-a862-68274a4f9b15",
+      "name": "Send a text message3",
+      "webhookId": "6aad4220-e7ff-4a3f-b57a-52d46727e902",
+      "credentials": {
+        "telegramApi": {
+          "id": "2Oug73Uyx5HwSzCT",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": {
+          "__rl": true,
+          "value": "users_activity",
+          "mode": "list",
+          "cachedResultName": "users_activity"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "id",
+        "valueToMatchOn": "={{ $item(0).$node[\"Insert rows in a table\"].json[\"data\"][\"insertId\"] }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "status",
+              "value": "processed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        704,
+        -1472
+      ],
+      "id": "6af1f07b-aac6-4d86-a94d-6867f1fab59e",
+      "name": "Update rows in a table",
+      "credentials": {
+        "mySql": {
+          "id": "26wPj95B4KFAPlZp",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03c7d28d-ab40-46fd-a001-440de5611015",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1888,
+        -1376
+      ],
+      "id": "eaaa365c-ed5a-44c3-b8f6-16efd1376372",
+      "name": "Is_/Start_message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6dbb101b-a6de-4630-aeb8-4a49470aac79",
+              "leftValue": "={{ $('Youtube_Transcriptions').item.json.message.text }}",
+              "rightValue": "youtube.com",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "4424f4a8-bbeb-49f1-b3a7-9e5158f0ba10",
+              "leftValue": "={{ $('Youtube_Transcriptions').item.json.message.text }}",
+              "rightValue": "youtu.be",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1216,
+        -1280
+      ],
+      "id": "67a408e5-754c-4d49-ba0a-64987ad4e659",
+      "name": "Is_Youtube_Link"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "53baf1df-1158-42d0-917b-844540fac45e",
+              "leftValue": "={{ $json.total_requests }}",
+              "rightValue": 4,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -768,
+        -1376
+      ],
+      "id": "d1c66cbd-0c9f-4cac-8832-01f581a1c1d9",
+      "name": "Validating_limitations"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Youtube_Transcriptions').item.json.message.chat.id }}",
+        "text": "کاربرعزیز خوش آمدی!  لطفاً لینک یوتیوب خود را ارسال فرمایید",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1664,
+        -1472
+      ],
+      "id": "65034116-752c-4d54-b962-b6a198e82935",
+      "name": "Send a Welcoming Message",
+      "webhookId": "e04139e1-ef10-4ff9-bcd0-25994d7996c1",
+      "credentials": {
+        "telegramApi": {
+          "id": "2Oug73Uyx5HwSzCT",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Youtube_Transcriptions').item.json.message.from.id }}",
+        "text": "درخواست شما دریافت شد و در حال پردازش است. لطفاً کمی منتظر بمانید... ⏳",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1440,
+        -1280
+      ],
+      "id": "b26dd585-e110-4071-84c2-b34556d67f88",
+      "name": "Send a text message to wait",
+      "webhookId": "19af46f6-9baa-4aa9-a0f9-7c55106ade7f",
+      "credentials": {
+        "telegramApi": {
+          "id": "2Oug73Uyx5HwSzCT",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Youtube_Transcriptions').item.json.message.chat.id }}",
+        "text": "در حال حاضر این بات فقط لینک‌های YouTube را پردازش می‌کند. لطفاً لینک معتبر بفرست. 🙏»",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -992,
+        -1184
+      ],
+      "id": "7365807b-a486-4cf5-8f23-c2b6079c980c",
+      "name": "Send a text message if is not a YT Link",
+      "webhookId": "43581a71-6100-4b70-99f3-e60c5dbb9158",
+      "credentials": {
+        "telegramApi": {
+          "id": "2Oug73Uyx5HwSzCT",
+          "name": "Telegram account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Youtube_Transcriptions": {
+      "main": [
+        [
+          {
+            "node": "Is_/Start_message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run an Actor and get dataset": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Language": {
+      "main": [
+        [
+          {
+            "node": "Run an Actor and get dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Send a text message to wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Validating_limitations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is_/Start_message": {
+      "main": [
+        [
+          {
+            "node": "Send a Welcoming Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is_Youtube_Link": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message if is not a YT Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validating_limitations": {
+      "main": [
+        [
+          {
+            "node": "Language",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message to wait": {
+      "main": [
+        [
+          {
+            "node": "Is_Youtube_Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "aexIZupkbJEY7kAf",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timezone": "Europe/Berlin"
+  },
+  "versionId": "df63798f-8229-4bd2-b0a3-c638082847ee",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e611a09b6ad6de5e58696671ac7a9b42aeba25441e30979d335336509d49544f"
+  },
+  "id": "KZbdumxQ84Ke0hQi",
+  "tags": []
+}

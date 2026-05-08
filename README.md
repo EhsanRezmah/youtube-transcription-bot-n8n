@@ -1,47 +1,44 @@
-# YouTube Transcription Bot with Rate Limiting
+# YouTube Transcription Bot with Rate Limiting & Cost Management
 
-Telegram bot that automatically transcribes YouTube videos using **Apify** and **n8n**.  
-Includes intelligent validation, daily usage limits per user, text cleaning & chunking, and full logging.
+> Telegram bot that automatically transcribes YouTube videos using **Apify** + **n8n** with smart validation, daily rate limiting per user, and AI-powered text processing.
 
 ## ✨ Features
 
-- Automatic YouTube link detection from Telegram
-- Smart validation (valid link + daily limit per user)
-- High-quality transcription via Apify
-- Text cleaning and smart chunking for long videos
-- Logging user activity to database
-- Clean and user-friendly Telegram interface
+- Automatic detection of YouTube links from Telegram messages
+- Intelligent validation (correct link + daily usage limit per user)
+- High-quality transcription using Apify
+- AI Agent (OpenRouter) for text cleaning and smart chunking of long videos
+- Complete logging of user activity in database
+- Clean and user-friendly experience in Telegram
 
 ## 🛠 Tech Stack
 
-- **n8n** (Workflow Automation)
-- **Apify** — YouTube Transcription
-- **OpenRouter** + **AI Agent** (for intelligent processing & decision making)
+- **n8n** — Main workflow engine
+- **Apify** — YouTube transcription
+- **OpenRouter + AI Agent** — Intelligent text analysis and cleaning
 - JavaScript Code Nodes
 - Telegram Bot API
-- SQL Database (Rate limiting + Logging)
+- SQL Database — Rate limiting & logging
 
 ## 📸 Workflow Overview
 <img width="1520" height="412" alt="image" src="https://github.com/user-attachments/assets/7d49dfb0-9c4e-4f12-9819-41b50a3c2462" />
 
-
 ## 🚀 How it Works
 
-1. User sends a YouTube link in Telegram
-2. Bot validates the link and checks daily usage limit
-3. If valid → Apify extracts transcription
-4. After transcription, an AI Agent powered by OpenRouter analyzes 
-   and cleans the text before sending it to the user.
-5. Result is sent back to user
-6. All activity is logged
+1. User sends a YouTube link via Telegram
+2. Bot validates the link and checks daily usage limit per user
+3. If valid → Apify extracts the transcription
+4. **AI Agent** (powered by OpenRouter) analyzes, cleans and chunks the text
+5. Clean result is sent back to the user
+6. All activity is logged in database
 
 ## 🚀 Future Improvements
 
-- Integrate **MCP (Model Context Protocol)** to turn the bot into a more powerful AI Agent
-- Save transcripts automatically into a **personal RAG system** (for future search & knowledge base)
-- Add multi-language support (currently works best with English/German)
-- Build a simple **Web Dashboard** to view transcription history
-- Add voice message support (Telegram voice → transcription)
-- Implement better cost monitoring and notifications when limit is near
+- Integrate **MCP (Model Context Protocol)** for more advanced agent capabilities
+- Automatically save transcripts to a personal **RAG system**
+- Multi-language support (currently best with English & German)
+- Web dashboard for transcription history
+- Voice message support (Telegram voice → transcription)
+- Advanced cost monitoring and alerts
 
-## 📌 Built with passion during Ausbildung
+## 📌 Built with passion during Ausbildung in Frankfurt
